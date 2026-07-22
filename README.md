@@ -18,7 +18,7 @@ context: documents, tables, slides, emails, code snippets, tickets, and other
 records that do not fit into a single prompt.
 
 <p align="center">
-  <img src="docs/assets/retrieval-pipeline.jpg" alt="MemLoop retrieval pipeline" width="86%">
+  <img src="assets/retrieval-pipeline.png" alt="MemLoop retrieval pipeline" width="86%">
 </p>
 
 **Pipeline.** MemLoop starts with sparse retrieval, navigates the hierarchy,
@@ -108,7 +108,7 @@ memloop evaluate \
 ## Core Concepts
 
 <p align="center">
-  <img src="docs/assets/path-search.jpg" alt="Search a path through the hierarchy" width="86%">
+  <img src="assets/path-search.png" alt="Search a path through the hierarchy" width="86%">
 </p>
 
 **Query-specific paths.** A query does not expand the full tree. MemLoop first
@@ -116,7 +116,7 @@ retrieves a broad candidate set, lets the query choose which branch to inspect,
 and carries forward only the evidence needed by the answer.
 
 <p align="center">
-  <img src="docs/assets/on-demand-promotion.jpg" alt="On-demand evidence promotion" width="86%">
+  <img src="assets/on-demand-promotion.png" alt="On-demand evidence promotion" width="86%">
 </p>
 
 **On-demand promotion.** The system avoids a full offline promotion build.
@@ -124,7 +124,7 @@ Detailed evidence is promoted after the query identifies useful parent-level
 visibility, keeping the promoted set small enough for a context budget.
 
 <p align="center">
-  <img src="docs/assets/dual-memory.jpg" alt="Dual detailed and distilled memory" width="86%">
+  <img src="assets/dual-memory.png" alt="Dual detailed and distilled memory" width="86%">
 </p>
 
 **Two memory views.** Detailed memory is large and metadata-rich, optimized for
@@ -229,8 +229,8 @@ memloop/
   methods/    node schema, indexes, promotion, decay, token ledger
   runners/    retrieval and answer-generation pipelines
   eval/       answer, citation, retrieval, and ROUGE evaluation
-docs/
-  assets/     README and documentation figures
+assets/      README and documentation figures
+docs/        quickstart, configuration, data contract, and operations notes
 examples/     demo dataset generator
 tests/        package and CLI smoke tests
 scripts/      batch launchers

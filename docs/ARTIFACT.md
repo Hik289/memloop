@@ -43,10 +43,11 @@ Main tracked entry points for local or benchmark-scale runs:
 
 ## Figure Assets
 
-- `dataset.jpg`
-- `intuition.jpg`
-- `mechanism.jpg`
-- `pipeline.jpg`
+- `assets/benchmark-construction.png`
+- `assets/dual-memory.png`
+- `assets/on-demand-promotion.png`
+- `assets/path-search.png`
+- `assets/retrieval-pipeline.png`
 
 ## Data And Outputs
 
