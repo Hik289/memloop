@@ -29,9 +29,9 @@ python -u -m memloop.runners.run_stream_v5 \
   --method "$METHOD" \
   --hierarchy "$HIERARCHY" \
   --queries "$QUERIES" \
-  --alias_answer "${MEMLOOP_ALIAS_ANSWER:-gpt_5_4_mini}" \
-  --alias_navigator "${MEMLOOP_ALIAS_NAVIGATOR:-gpt_5_4_mini}" \
-  --alias_low "${MEMLOOP_ALIAS_LOW:-gpt_5_4_mini}" \
+  --alias_answer "${MEMLOOP_ALIAS_ANSWER:-general}" \
+  --alias_navigator "${MEMLOOP_ALIAS_NAVIGATOR:-general}" \
+  --alias_low "${MEMLOOP_ALIAS_LOW:-general}" \
   --top_k_distilled "${MEMLOOP_TOP_K_DISTILLED:-25}" \
   --max_detailed_load "${MEMLOOP_MAX_DETAILED_LOAD:-10}" \
   --out "$OUT" \

@@ -16,15 +16,21 @@ directory:
 export MEMLOOP_ENV_FILE=/secure/path/memloop.env
 ```
 
-## Provider Settings
+## API Settings
 
 | Variable | Required for | Notes |
 | --- | --- | --- |
-| `AZURE_OPENAI_ENDPOINT` | Azure LLM calls | Endpoint URL for Azure deployments. |
-| `AZURE_LLM_API_KEY` | Azure LLM calls | Preferred key name for MemLoop. |
-| `AZURE_OPENAI_KEY` | Azure LLM calls | Fallback key name. |
-| `AWS_BEDROCK_API_KEY` | Bedrock response calls | Used by Bedrock-compatible aliases. |
-| `BEDROCK_MODEL_GPT54` | Bedrock response calls | Optional model override. |
+| `MEMLOOP_API_BASE_URL` | Model-backed answering and judging | OpenAI-compatible chat-completions base URL. |
+| `MEMLOOP_API_KEY` | Model-backed answering and judging | API key for your model gateway. |
+| `MEMLOOP_API_MODEL` | Model-backed answering and judging | Chat model name or deployment alias. |
+| `MEMLOOP_EMBED_API_BASE_URL` | API-backed embeddings | Optional OpenAI-compatible embedding endpoint. |
+| `MEMLOOP_EMBED_API_KEY` | API-backed embeddings | Optional embedding API key. |
+| `MEMLOOP_EMBED_API_MODEL` | API-backed embeddings | Optional embedding model or deployment alias. |
+| `MEMLOOP_EMBED_DIM` | API-backed embeddings | Optional embedding dimension override. |
+
+MemLoop's default public configuration is provider-neutral. Advanced deployments
+can still add project-specific provider aliases in `memloop.core.api_adapter`
+when they need a custom gateway, tenancy layer, or hosted model runtime.
 
 ## Retrieval Settings
 

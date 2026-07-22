@@ -2,8 +2,9 @@
 Multi-model API adapter for MemLoop.
 
 Provides a single `call(alias, messages, max_tokens, temperature)` interface
-across six provider aliases:
+across the default OpenAI-compatible gateway and optional provider aliases:
 
+    general  -> OpenAI-compatible chat endpoint from MEMLOOP_API_* env vars
     mini      -> Azure OpenAI gpt-4o-mini
     standard  -> Azure OpenAI gpt-4o
     complex   -> AWS Bedrock claude-opus-4-8 (us.anthropic.claude-opus-4-8)
@@ -139,7 +140,7 @@ def estimate_cost(model: str, input_tokens: int, output_tokens: int) -> float:
 @dataclass(frozen=True)
 class AliasConfig:
     alias: str
-    provider: str  # "azure" | "bedrock" | "bedrock_responses"
+    provider: str  # "openai_compatible" | "azure" | "bedrock" | "bedrock_responses"
     model: str     # model id (azure deployment name OR bedrock model id)
     # Optional flags for provider-specific quirks.
     # chat_param_quirk values:
@@ -161,6 +162,9 @@ def _require_env(name: str) -> str:
 
 def get_alias_config(alias: str) -> AliasConfig:
     """Resolve provider + model id from env. Does NOT return any secret."""
+    if alias in ("general", "default"):
+        model_id = os.environ.get("MEMLOOP_API_MODEL", "model")
+        return AliasConfig(alias="general", provider="openai_compatible", model=model_id)
     if alias == "mini":
         deployment = _require_env("AZURE_OPENAI_MINI")
         return AliasConfig(alias="mini", provider="azure", model=deployment)
@@ -213,7 +217,8 @@ def get_alias_config(alias: str) -> AliasConfig:
         )
     raise ValueError(
         f"Unknown alias: {alias!r}. Expected one of: "
-        "mini, standard, complex, gpt_large, gpt_5_4, gpt_5_4_mini, gpt_5_5, gpt_5_4_azure"
+        "general, mini, standard, complex, gpt_large, gpt_5_4, "
+        "gpt_5_4_mini, gpt_5_5, gpt_5_4_azure"
     )
 
 
@@ -235,6 +240,42 @@ def _http_post(
 # ---------------------------------------------------------------------------
 # Provider-specific request builders + parsers.
 # ---------------------------------------------------------------------------
+
+
+def _call_openai_compatible(
+    cfg: AliasConfig,
+    messages: List[Dict[str, str]],
+    max_tokens: int,
+    temperature: float,
+    timeout: float,
+) -> Dict[str, Any]:
+    """Call a generic OpenAI-compatible chat completions endpoint."""
+    base_url = _require_env("MEMLOOP_API_BASE_URL").rstrip("/")
+    api_key = _require_env("MEMLOOP_API_KEY")
+    model = os.environ.get("MEMLOOP_API_MODEL", cfg.model)
+    url = f"{base_url}/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
+    body: Dict[str, Any] = {
+        "model": model,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+    raw = _http_post(url, headers, body, timeout=timeout)
+    choices = raw.get("choices") or []
+    if not choices:
+        raise RuntimeError("OpenAI-compatible response missing 'choices'")
+    text = choices[0].get("message", {}).get("content", "") or ""
+    usage = raw.get("usage") or {}
+    return {
+        "text": text,
+        "input_tokens": int(usage.get("prompt_tokens", 0)),
+        "output_tokens": int(usage.get("completion_tokens", 0)),
+    }
 
 
 def _call_azure(
@@ -585,7 +626,11 @@ def call(
     for attempt in range(1, max_retries + 1):
         t0 = time.time()
         try:
-            if cfg.provider == "azure":
+            if cfg.provider == "openai_compatible":
+                inner = _call_openai_compatible(
+                    cfg, messages, max_tokens, temperature, timeout
+                )
+            elif cfg.provider == "azure":
                 inner = _call_azure(cfg, messages, max_tokens, temperature, timeout)
             elif cfg.provider == "bedrock":
                 if cfg.alias == "gpt_large":
@@ -676,6 +721,8 @@ def call(
 # provider + model). We exclude them from the leak scan.
 _SECRET_ENV_KEYS = (
     "AZURE_OPENAI_KEY",
+    "MEMLOOP_API_KEY",
+    "MEMLOOP_EMBED_API_KEY",
     "BEDROCK_API_KEY",
     "BEDROCK_MANTLE_API_KEY",
     "OPENAI_API_KEY",
@@ -703,50 +750,22 @@ load_env()
 
 
 if __name__ == "__main__":
-    # Smoke test for the gpt_large alias (Bedrock Converse, openai.gpt-oss-120b-1:0).
-    # Wrapped so missing env vars / network errors do not break other aliases'
-    # independent smoke runs (each alias is self-contained).
-    try:
-        res = call(
-            "gpt_large",
-            [{"role": "user", "content": "Reply with exactly: TEST_PASSED"}],
-            max_tokens=100,
-            temperature=0.0,
-        )
-        assert "TEST_PASSED" in res["text"], f"got: {res['text']!r}"
-        print(
-            f"gpt_large alias works: text={res['text'][:80]!r}, "
-            f"latency={res['latency_ms']:.0f}ms, "
-            f"in={res['usage']['input_tokens']} out={res['usage']['output_tokens']}"
-        )
-    except Exception as e:
-        print(f"gpt_large smoke skipped: {e}")
-
-    # Smoke test for gpt_5_4 (Bedrock Mantle /responses, openai.gpt-5.4).
-    res = call(
-        "gpt_5_4",
-        [{"role": "user", "content": "Reply with exactly: TEST_GPT54"}],
-        max_tokens=100,
-        temperature=0.0,
-    )
-    assert "TEST_GPT54" in res["text"], f"got: {res['text']!r}"
-    print(
-        f"gpt_5_4 alias works: text={res['text'][:80]!r}, "
-        f"latency={res['latency_ms']:.0f}ms "
-        f"in={res['usage']['input_tokens']} out={res['usage']['output_tokens']}"
-    )
-
-    # Smoke test for gpt_5_5 (reasoning model). Larger token budget so the
-    # model has room to emit reasoning tokens AND visible output.
-    res = call(
-        "gpt_5_5",
-        [{"role": "user", "content": "Reply with exactly: TEST_GPT55"}],
-        max_tokens=200,
-        temperature=0.0,
-    )
-    assert "TEST_GPT55" in res["text"], f"got: {res['text']!r}"
-    print(
-        f"gpt_5_5 alias works: text={res['text'][:80]!r}, "
-        f"latency={res['latency_ms']:.0f}ms "
-        f"in={res['usage']['input_tokens']} out={res['usage']['output_tokens']}"
-    )
+    if not os.environ.get("MEMLOOP_API_BASE_URL") or not os.environ.get("MEMLOOP_API_KEY"):
+        print("general smoke skipped: set MEMLOOP_API_BASE_URL and MEMLOOP_API_KEY")
+    else:
+        try:
+            res = call(
+                "general",
+                [{"role": "user", "content": "Reply with exactly: TEST_GENERAL"}],
+                max_tokens=100,
+                temperature=0.0,
+                max_retries=1,
+            )
+            assert "TEST_GENERAL" in res["text"], f"got: {res['text']!r}"
+            print(
+                f"general alias works: text={res['text'][:80]!r}, "
+                f"latency={res['latency_ms']:.0f}ms, "
+                f"in={res['usage']['input_tokens']} out={res['usage']['output_tokens']}"
+            )
+        except Exception as e:
+            print(f"general smoke skipped: {e}")

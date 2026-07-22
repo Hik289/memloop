@@ -78,7 +78,7 @@ def extract_one(rec, doc_lookup, cost_tracker):
     messages = [{'role':'system','content':SYSTEM},{'role':'user','content':user}]
     for attempt in range(3):
         try:
-            resp = api_call('gpt_5_4', messages, max_tokens=300, temperature=0.0, timeout=90.0, max_retries=2)
+            resp = api_call("general", messages, max_tokens=300, temperature=0.0, timeout=90.0, max_retries=2)
             text = resp.get('text','').strip()
             usage = resp.get('usage', {})
             in_t = usage.get('input_tokens', 0)

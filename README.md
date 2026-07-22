@@ -166,10 +166,13 @@ cp .env.example .env
 | --- | --- |
 | `MEMLOOP_REPO_ROOT` | Project directory used for `.env`, manifests, results, and caches. |
 | `MEMLOOP_ENV_FILE` | Optional explicit path to an environment file. |
-| `AZURE_OPENAI_ENDPOINT` | Azure endpoint for OpenAI-compatible deployments. |
-| `AZURE_LLM_API_KEY` or `AZURE_OPENAI_KEY` | Key for Azure-backed LLM calls. |
-| `AWS_BEDROCK_API_KEY` | Optional key for Bedrock-compatible response calls. |
+| `MEMLOOP_API_BASE_URL` | OpenAI-compatible chat-completions base URL. |
+| `MEMLOOP_API_KEY` | API key for the configured model gateway. |
+| `MEMLOOP_API_MODEL` | Chat model name or deployment alias. |
 | `MEMLOOP_EMBED_BACKEND` | `minilm` for local embeddings, or a configured API-backed backend. |
+| `MEMLOOP_EMBED_API_BASE_URL` | Optional OpenAI-compatible embedding endpoint. |
+| `MEMLOOP_EMBED_API_KEY` | Optional embedding API key. |
+| `MEMLOOP_EMBED_API_MODEL` | Optional embedding model or deployment alias. |
 | `MEMLOOP_L0_RETRIEVAL` | `bm25` by default; dense reranking can be enabled separately. |
 | `MEMLOOP_SKIP_L0_EMBED` | Set to `1` to avoid embedding every L0 node. |
 | `MEMLOOP_INDEX_CACHE_DIR` | Optional cache directory for retrieval indexes. |

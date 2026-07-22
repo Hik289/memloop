@@ -10,7 +10,7 @@ Per-query metrics:
   recall    = |cited & expected| / max(1, |expected|)
   f1        = 2 P R / (P + R)
 
-LLM score (0..1): gpt_5_4_mini judges the answer 0..5 vs the reference;
+LLM score (0..1): the configured `general` alias judges the answer 0..5 vs the reference;
                   if reference is empty, score based on factuality vs query alone.
 
 Aggregate per (method, tier):
@@ -42,8 +42,8 @@ if REPO_ROOT not in sys.path:
 
 from memloop.core.api_adapter import APIError, call as api_call  # noqa: E402
 
-JUDGE_PRICE_PER_M = {"input": 0.00, "output": 0.00}   # gpt_5_4_mini (cost tracked elsewhere)
-JUDGE_ALIAS = "gpt_5_4_mini"   # 2026-07-13: azure mini throttled, use Bedrock full for judge
+JUDGE_PRICE_PER_M = {"input": 0.00, "output": 0.00}
+JUDGE_ALIAS = "general"
 
 
 JUDGE_SYSTEM = """You are a lenient evaluator scoring whether a model's answer is broadly aligned with the reference.
