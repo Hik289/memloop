@@ -1,6 +1,6 @@
 # MemLoop
 
-**Production-ready hierarchical memory retrieval for enterprise RAG.**
+**Production-grade hierarchical memory retrieval for enterprise RAG systems.**
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0E7C66.svg" alt="MIT license"></a>
@@ -9,31 +9,45 @@
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/cli-memloop-111827.svg" alt="memloop CLI"></a>
 </p>
 
-MemLoop turns a large document pool into a query-aware memory system. It builds
-a hierarchy over raw evidence, keeps compact memory for routing and detailed
-memory for grounding, then promotes source evidence only when a query needs it.
-
-It is built for product teams that need retrieval over long-running enterprise
-context: documents, tables, slides, emails, code snippets, tickets, and other
-records that do not fit into a single prompt.
+MemLoop is a Python package and CLI for teams building retrieval over long-lived
+enterprise context: documents, tables, slides, tickets, code snippets, emails,
+and other evidence that cannot fit into a single prompt. It builds a hierarchy
+over raw evidence, routes each query through compact memory, promotes detailed
+source evidence only when needed, and produces answer contexts that are easier
+to inspect, evaluate, and operate.
 
 <p align="center">
-  <img src="assets/retrieval-pipeline.png" alt="MemLoop retrieval pipeline" width="86%">
+  <img src="assets/retrieval-pipeline.png" alt="MemLoop retrieval pipeline" width="78%">
 </p>
 
-**Pipeline.** MemLoop starts with sparse retrieval, navigates the hierarchy,
-promotes useful evidence, distills compact context, and produces a cited answer.
-The detailed store remains available, but the answer model only reads the
-evidence selected for the current query.
+## What MemLoop Provides
 
-## Why MemLoop
-
-| Problem | MemLoop behavior |
+| Area | Production behavior |
 | --- | --- |
-| Flat retrieval floods the answer model with noisy context. | Route through a hierarchy and carry forward only a narrow active path. |
-| Prebuilding every detailed summary is slow and expensive. | Promote detailed evidence on demand at query time. |
-| Summaries are useful for search but not enough for final answers. | Keep both `distilled_text` and `detailed_text` for every node. |
-| Product deployments need observability. | Record token use, model aliases, state changes, promoted context, and answer files. |
+| Retrieval control | BM25-first L0 retrieval, hierarchy navigation, and explicit evidence promotion. |
+| Context efficiency | Compact `distilled_text` for breadth plus selected `detailed_text` for grounding. |
+| Observability | Token accounting, promotion events, model aliases, answer files, and resumable run directories. |
+| Evaluation | Answer quality, citation quality, retrieval-only, and ROUGE evaluation entry points. |
+| Provider flexibility | Provider-neutral configuration for OpenAI-compatible chat and embedding gateways. |
+| Data hygiene | Local manifests and generated outputs stay outside Git by default. |
+
+## System Design
+
+MemLoop separates the retrieval system into three layers:
+
+| Layer | Responsibility | Key modules |
+| --- | --- | --- |
+| Data plane | Build L0 evidence, hierarchy nodes, and dual memory fields. | `memloop.data`, `memloop.methods.dual_node` |
+| Retrieval plane | Search, navigate, promote, distill, and assemble answer context. | `memloop.methods`, `memloop.runners` |
+| Operations plane | Load configuration, track tokens, run evaluations, and verify environments. | `memloop.core`, `memloop.eval`, `memloop.cli` |
+
+The runtime path is intentionally coarse-to-fine:
+
+1. Retrieve sparse L0 candidates.
+2. Navigate hierarchy nodes to choose an active path.
+3. Promote detailed evidence when the query needs source-level grounding.
+4. Distill compact answer context.
+5. Produce cited answers and evaluation artifacts.
 
 ## Install
 
@@ -46,7 +60,7 @@ source .venv/bin/activate
 pip install -e ".[all]"
 ```
 
-For a lean install:
+For smaller environments:
 
 ```bash
 pip install -e .              # core CLI and retrieval dependencies
@@ -54,7 +68,7 @@ pip install -e ".[local]"     # local sentence-transformer embeddings
 pip install -e ".[llm,eval]"  # model providers and evaluation tools
 ```
 
-Check the environment:
+Verify the package:
 
 ```bash
 memloop doctor
@@ -62,13 +76,13 @@ memloop doctor
 
 ## Quick Start
 
-Create a tiny local dataset:
+Create a small local dataset:
 
 ```bash
 python examples/create_demo_dataset.py
 ```
 
-Build a hierarchy:
+Build a dry-run hierarchy:
 
 ```bash
 memloop build-hierarchy \
@@ -105,36 +119,45 @@ memloop evaluate \
   --resume
 ```
 
+## Production Workflow
+
+| Step | Command or artifact | Operational note |
+| --- | --- | --- |
+| Prepare manifests | `manifests/l0_nodes.parquet`, `queries.parquet`, `gold.jsonl` | Keep private data outside Git. |
+| Build hierarchy | `memloop build-hierarchy` | Store hierarchy outputs under `results/hierarchy/`. |
+| Run retrieval | `memloop run` or `memloop run-v6` | Use `--resume` for long jobs. |
+| Evaluate | `memloop evaluate`, `memloop eval-retrieval`, `memloop eval-rouge` | Keep raw answers and reports as local artifacts. |
+| Inspect operations | Token ledger, promotion state, answer JSONL, logs | Track model alias, seed, tier, and git commit. |
+
 ## Core Concepts
 
 <p align="center">
-  <img src="assets/path-search.png" alt="Search a path through the hierarchy" width="86%">
+  <img src="assets/path-search.png" alt="Search a path through the hierarchy" width="80%">
 </p>
 
 **Query-specific paths.** A query does not expand the full tree. MemLoop first
-retrieves a broad candidate set, lets the query choose which branch to inspect,
-and carries forward only the evidence needed by the answer.
+retrieves a broad candidate set, chooses a narrow hierarchy path, and carries
+forward only evidence that helps answer the current request.
 
 <p align="center">
-  <img src="assets/on-demand-promotion.png" alt="On-demand evidence promotion" width="86%">
+  <img src="assets/on-demand-promotion.png" alt="On-demand evidence promotion" width="80%">
 </p>
 
-**On-demand promotion.** The system avoids a full offline promotion build.
-Detailed evidence is promoted after the query identifies useful parent-level
-visibility, keeping the promoted set small enough for a context budget.
+**On-demand promotion.** The system avoids prebuilding every detailed summary.
+Detailed evidence is promoted after parent-level routing identifies useful
+branches, keeping answer context within a predictable budget.
 
 <p align="center">
-  <img src="assets/dual-memory.png" alt="Dual detailed and distilled memory" width="86%">
+  <img src="assets/dual-memory.png" alt="Dual detailed and distilled memory" width="80%">
 </p>
 
-**Two memory views.** Detailed memory is large and metadata-rich, optimized for
-inspection and grounding. Distilled memory is compact and evidence-focused,
-optimized for routing and final answer context.
+**Two memory views.** Detailed memory is optimized for inspection and grounding.
+Distilled memory is optimized for routing and compact final answer context.
 
 ## Data Contract
 
-MemLoop reads local files. It does not commit private corpora or generated
-answer logs.
+MemLoop reads local files. It does not commit private corpora, generated answer
+logs, caches, or model outputs.
 
 | File | Format | Required fields |
 | --- | --- | --- |
@@ -177,8 +200,9 @@ cp .env.example .env
 | `MEMLOOP_SKIP_L0_EMBED` | Set to `1` to avoid embedding every L0 node. |
 | `MEMLOOP_INDEX_CACHE_DIR` | Optional cache directory for retrieval indexes. |
 
-Runtime secrets belong in `.env` or your process environment. Do not commit real
-keys, parquet manifests, JSONL answers, logs, caches, or generated run outputs.
+Secrets belong in `.env`, your process environment, or a deployment secret
+manager. Do not commit real keys, parquet manifests, JSONL answers, logs,
+caches, or generated run outputs.
 
 ## CLI Reference
 
@@ -193,8 +217,8 @@ memloop eval-rouge         # compute ROUGE metrics locally
 memloop api-smoke          # test configured provider calls
 ```
 
-The shell scripts in `scripts/` are thin batch launchers built on these package
-entry points.
+The scripts in `scripts/` are batch launchers built on these package entry
+points. Prefer the `memloop` CLI in new automation.
 
 ## Python API
 
@@ -230,17 +254,19 @@ memloop/
   runners/    retrieval and answer-generation pipelines
   eval/       answer, citation, retrieval, and ROUGE evaluation
 assets/      README and documentation figures
-docs/        quickstart, configuration, data contract, and operations notes
-examples/     demo dataset generator
-tests/        package and CLI smoke tests
-scripts/      batch launchers
+docs/        architecture, quickstart, configuration, data contract, operations
+examples/    demo dataset generator
+tests/       package and CLI smoke tests
+scripts/     batch launchers
 ```
 
 ## Documentation
 
+- [Architecture](docs/architecture.md)
 - [Quickstart](docs/quickstart.md)
 - [Configuration](docs/configuration.md)
 - [Data contract](docs/data-contract.md)
+- [Production checklist](docs/production.md)
 - [Operations guide](docs/ARTIFACT.md)
 
 ## Development
@@ -250,6 +276,14 @@ pip install -e ".[dev]"
 python -m compileall -q memloop
 pytest
 python -m build
+```
+
+Optional convenience commands:
+
+```bash
+make install-dev
+make test
+make build
 ```
 
 Before pushing public changes:

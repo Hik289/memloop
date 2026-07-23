@@ -26,3 +26,7 @@ jobs:
           python -m memloop --help
           memloop doctor
           pytest
+      - name: Build distribution
+        run: |
+          python -m build
+          python -m twine check dist/*

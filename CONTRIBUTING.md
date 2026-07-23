@@ -10,6 +10,15 @@ pip install -e ".[dev]"
 python -m compileall -q memloop
 pytest
 memloop doctor
+python -m build
+```
+
+You can also use the convenience targets:
+
+```bash
+make install-dev
+make test
+make build
 ```
 
 ## Pull Request Checklist
@@ -18,3 +27,4 @@ memloop doctor
 - Add focused tests for new public behavior.
 - Do not commit `.env`, generated outputs, parquet manifests, caches, or logs.
 - Keep provider credentials in environment variables only.
+- Run package build checks before cutting a release.

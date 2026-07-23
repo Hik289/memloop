@@ -10,6 +10,8 @@ Operational notes for running MemLoop from the public package repository.
 - `memloop/runners/`: Retrieval and answer-generation pipelines.
 - `memloop/data/`: Hierarchy construction and data preparation utilities.
 - `scripts/`: Batch launchers built on package entry points.
+- `docs/architecture.md`: Runtime layers, query lifecycle, and extension points.
+- `docs/production.md`: Deployment, secrets, operations, and release checklist.
 
 ## Environment Files
 
@@ -24,6 +26,8 @@ Run these checks before long jobs:
 ```bash
 python -m compileall -q memloop
 memloop doctor
+pytest
+python -m build
 ```
 
 If no smoke command is tracked, use the README Quick Start with the smallest seed, sample, or task count.
