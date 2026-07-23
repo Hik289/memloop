@@ -16,7 +16,7 @@ torch>=2.0
 
 # LLM providers and token accounting
 httpx>=0.24
-openai>=1.0
+openai>=2.47.0
 requests>=2.31
 tiktoken>=0.5
 
