@@ -11,13 +11,20 @@ Operational notes for running MemLoop from the public package repository.
 - `memloop/data/`: Hierarchy construction and data preparation utilities.
 - `scripts/`: Batch launchers built on package entry points.
 - `docs/architecture.md`: Runtime layers, query lifecycle, and extension points.
+- `docs/api-reference.md`: Public Python API surface.
+- `docs/integration.md`: Model gateway, storage, orchestration, and evaluation boundaries.
+- `docs/observability.md`: Signals, run directory layout, release gates, and triage.
 - `docs/production.md`: Deployment, secrets, operations, and release checklist.
+- `docs/release.md`: Versioning, packaging, release notes, and artifact policy.
 
 ## Environment Files
 
 - `requirements.txt`: Primary Python dependency list.
 - `pyproject.toml`: Package metadata and optional extras when available.
 - `.env.example`: Template for local credentials or backend configuration.
+- `.github/dependabot.yml`: Dependency update configuration.
+- `.github/CODEOWNERS`: Default review ownership.
+- `.editorconfig`: Editor defaults for consistent text files.
 
 ## Smoke Checks
 

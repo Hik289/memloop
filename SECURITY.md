@@ -16,3 +16,11 @@ answer logs.
 - Keep private corpora and generated outputs outside Git.
 - Review logs before sharing run artifacts.
 - Avoid committing cached embeddings or retrieval indexes.
+
+## Operational Checks
+
+- Run the README secret scan before pushing public commits.
+- Keep `results/`, `logs/`, caches, generated JSONL, and parquet manifests out
+  of commits.
+- See `docs/production.md` for release safety checks and
+  `docs/observability.md` for run-audit guidance.

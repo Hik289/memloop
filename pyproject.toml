@@ -72,6 +72,8 @@ all = [
 Homepage = "https://github.com/Hik289/memloop"
 Repository = "https://github.com/Hik289/memloop"
 Issues = "https://github.com/Hik289/memloop/issues"
+Documentation = "https://github.com/Hik289/memloop#documentation"
+Changelog = "https://github.com/Hik289/memloop/blob/main/CHANGELOG.md"
 
 [project.scripts]
 memloop = "memloop.cli:main"

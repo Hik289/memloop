@@ -31,6 +31,15 @@ to inspect, evaluate, and operate.
 | Provider flexibility | Provider-neutral configuration for OpenAI-compatible chat and embedding gateways. |
 | Data hygiene | Local manifests and generated outputs stay outside Git by default. |
 
+## Deployment Modes
+
+| Mode | Owner | Typical use |
+| --- | --- | --- |
+| Local package | Applied ML engineer | Build and inspect retrieval runs on a workstation. |
+| Batch worker | Platform team | Schedule hierarchy builds, benchmark runs, and regression jobs. |
+| Service integration | Product team | Wrap the Python API inside an internal RAG service. |
+| Evaluation gate | Release team | Compare retrieval quality, citation quality, and token budget before rollout. |
+
 ## System Design
 
 MemLoop separates the retrieval system into three layers:
@@ -128,6 +137,10 @@ memloop evaluate \
 | Run retrieval | `memloop run` or `memloop run-v6` | Use `--resume` for long jobs. |
 | Evaluate | `memloop evaluate`, `memloop eval-retrieval`, `memloop eval-rouge` | Keep raw answers and reports as local artifacts. |
 | Inspect operations | Token ledger, promotion state, answer JSONL, logs | Track model alias, seed, tier, and git commit. |
+
+For deployment patterns and system boundaries, see
+[Integration guide](docs/integration.md), [Observability](docs/observability.md),
+and [Production checklist](docs/production.md).
 
 ## Core Concepts
 
@@ -263,11 +276,18 @@ scripts/     batch launchers
 ## Documentation
 
 - [Architecture](docs/architecture.md)
+- [API reference](docs/api-reference.md)
 - [Quickstart](docs/quickstart.md)
 - [Configuration](docs/configuration.md)
 - [Data contract](docs/data-contract.md)
+- [Integration guide](docs/integration.md)
+- [Observability](docs/observability.md)
 - [Production checklist](docs/production.md)
+- [Release process](docs/release.md)
 - [Operations guide](docs/ARTIFACT.md)
+- [Examples](examples/README.md)
+- [Scripts](scripts/README.md)
+- [Support](SUPPORT.md)
 
 ## Development
 

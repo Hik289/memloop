@@ -28,3 +28,10 @@ make build
 - Do not commit `.env`, generated outputs, parquet manifests, caches, or logs.
 - Keep provider credentials in environment variables only.
 - Run package build checks before cutting a release.
+
+## Documentation Map
+
+- Public APIs: `docs/api-reference.md`
+- Deployment patterns: `docs/integration.md`
+- Operational checks: `docs/observability.md` and `docs/production.md`
+- Release process: `docs/release.md`
