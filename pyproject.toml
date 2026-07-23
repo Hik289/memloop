@@ -37,7 +37,7 @@ dependencies = [
 
 [project.optional-dependencies]
 local = [
-  "sentence-transformers>=2.2",
+  "sentence-transformers>=5.6.0",
   "torch>=2.0",
 ]
 llm = [
@@ -58,7 +58,7 @@ dev = [
   "twine>=5.0",
 ]
 all = [
-  "sentence-transformers>=2.2",
+  "sentence-transformers>=5.6.0",
   "torch>=2.0",
   "httpx>=0.24",
   "openai>=1.0",
