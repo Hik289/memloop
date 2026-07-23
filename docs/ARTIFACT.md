@@ -22,7 +22,6 @@ Operational notes for running MemLoop from the public package repository.
 - `requirements.txt`: Primary Python dependency list.
 - `pyproject.toml`: Package metadata and optional extras when available.
 - `.env.example`: Template for local credentials or backend configuration.
-- `.github/dependabot.yml`: Dependency update configuration.
 - `.github/CODEOWNERS`: Default review ownership.
 - `.editorconfig`: Editor defaults for consistent text files.
 

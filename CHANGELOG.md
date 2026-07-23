@@ -3,7 +3,7 @@
 ## Unreleased
 
 - Added product documentation for API, integration, observability, release, examples, and scripts.
-- Added repository governance files for ownership, dependency updates, support, and editor defaults.
+- Added repository governance files for ownership, support, and editor defaults.
 
 ## 0.1.0
 
